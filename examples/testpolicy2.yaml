@@ -1,0 +1,15 @@
+apiVersion: cmsnr.com/v1alpha1
+kind: OpaPolicy
+metadata:
+  name: testing2
+spec:
+  deploymentName: testing
+  policyName: myOtherPolicy
+  policy: |
+    package there
+
+    default allow = false
+
+    allow {
+        true
+    }

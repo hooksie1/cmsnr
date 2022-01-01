@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: testing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: testing
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        cmsnr.com/deploymentName: "testing"
+      labels:
+        app: testing
+        cmsnr.com/inject: enabled
+    spec:
+      containers:
+      - image: alpine
+        imagePullPolicy: Always
+        name: alpine
+        command: ["sleep"]
+        args:
+          - "1000"
