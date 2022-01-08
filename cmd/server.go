@@ -23,11 +23,13 @@ func init() {
 }
 
 type webhookServer struct {
-	service   string
-	namespace string
-	name      string
-	port      int
-	cert      []byte
-	key       []byte
-	certPath  string
+	serverType string
+	service    string
+	namespace  string
+	name       string
+	port       int
+	cert       []byte
+	key        []byte
+	certPath   string
+	print      func(interface{}, func(i interface{}))
 }
