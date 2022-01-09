@@ -3,6 +3,7 @@ package deployment
 import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func NewService(name, namespace string, port int) *corev1.Service {
@@ -18,7 +19,8 @@ func NewService(name, namespace string, port int) *corev1.Service {
 		Spec: corev1.ServiceSpec{
 			Ports: []corev1.ServicePort{
 				{
-					Port: int32(port),
+					Port:       int32(port),
+					TargetPort: intstr.FromInt(port),
 				},
 			},
 			Selector: map[string]string{

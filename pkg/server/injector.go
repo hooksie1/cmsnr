@@ -50,7 +50,7 @@ func (s *SidecarInjector) Handle(ctx context.Context, r admission.Request) admis
 
 	err := s.decoder.Decode(r, pod)
 	if err != nil {
-		log.Error("error decoding: %s", err)
+		log.Errorf("error decoding: %s", err)
 		return admission.Errored(http.StatusBadRequest, err)
 	}
 
@@ -70,7 +70,7 @@ func (s *SidecarInjector) Handle(ctx context.Context, r admission.Request) admis
 
 	marshaled, err := json.Marshal(pod)
 	if err != nil {
-		log.Error("error marshaling pod: %s", err)
+		log.Errorf("error marshaling pod: %s", err)
 		return admission.Errored(http.StatusInternalServerError, err)
 	}
 

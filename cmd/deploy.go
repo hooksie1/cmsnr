@@ -2,12 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"gitlab.com/hooksie1/cmsnr/pkg/deployment"
+	"os"
 	"sigs.k8s.io/yaml"
 )
 
@@ -34,7 +33,9 @@ func printKind(i interface{}) {
 
 func generate(cmd *cobra.Command, args []string) {
 	mService := "cmsnr-mutating-webhook"
-	name := viper.GetString("secret")
+	vService := "cmsnr-validating-webhook"
+	mSecret := fmt.Sprintf("mutating-%s", viper.GetString("secret"))
+	vSecret := fmt.Sprintf("validating-%s", viper.GetString("secret"))
 	port := viper.GetInt("port")
 	namespace := viper.GetString("namespace")
 
@@ -44,61 +45,26 @@ func generate(cmd *cobra.Command, args []string) {
 		os.Exit(2)
 	}
 
-	mw := webhookServer{
-		service:   mService,
-		namespace: namespace,
-		name:      name,
-		port:      port,
-		cert:      mCert,
-		key:       mKey,
+	vCert, vKey, err := deployment.GenerateCertificate(vService, namespace)
+	if err != nil {
+		log.Error(err)
+		os.Exit(2)
 	}
 
-	mw.printServiceAccount()
+	mw := deployment.NewMutatingWebhookServer().NamespacedName(mService, namespace).MutatingWebhook(port, mCert).Rules()
+	vw := deployment.NewValidatingWebhookServer().NamespacedName(vService, namespace).ValidatingWebhook(port, vCert).Rules()
 
-	mw.printClusterRole()
-
-	mw.printClusterRoleBinding()
-
-	mw.printCRD()
-
-	mw.printMutatingDeployment()
-
-	mw.printMutatingService()
-
-	mw.printMutatingSecret()
-
-	mw.printMutatingWebhook()
-
-}
-
-func (w *webhookServer) printServiceAccount() {
-	printKind(deployment.NewSA(w.namespace))
-}
-
-func (w *webhookServer) printClusterRole() {
+	printKind(deployment.NewSA(namespace))
 	printKind(deployment.NewClusterRole())
-}
-
-func (w *webhookServer) printClusterRoleBinding() {
-	printKind(deployment.NewClusterRolebinding(w.namespace))
-}
-
-func (w *webhookServer) printCRD() {
+	printKind(deployment.NewClusterRolebinding(namespace))
 	fmt.Println(deployment.NewCRD())
-}
+	printKind(deployment.NewDeployment(mService, namespace, "mutating", mSecret, port))
+	printKind(deployment.NewDeployment(vService, namespace, "validating", vSecret, port))
+	printKind(deployment.NewService(mService, namespace, port))
+	printKind(deployment.NewService(vService, namespace, port))
+	printKind(deployment.CertAsSecret(mCert, mKey, mSecret, namespace))
+	printKind(deployment.CertAsSecret(vCert, vKey, vSecret, namespace))
+	printKind(mw.Config)
+	printKind(vw.Config)
 
-func (w *webhookServer) printMutatingDeployment() {
-	printKind(deployment.NewDeployment(w.service, w.namespace, w.port))
-}
-
-func (w *webhookServer) printMutatingService() {
-	printKind(deployment.NewService(w.service, w.namespace, w.port))
-}
-
-func (w *webhookServer) printMutatingSecret() {
-	printKind(deployment.CertAsSecret(w.cert, w.key, w.name, w.namespace))
-}
-
-func (w *webhookServer) printMutatingWebhook() {
-	printKind(deployment.NewMutatingWebhookConfig(w.service, w.namespace, w.port, w.cert))
 }
