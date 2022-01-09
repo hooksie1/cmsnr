@@ -20,7 +20,7 @@ var validatingCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(validatingCmd)
+	startCmd.AddCommand(validatingCmd)
 }
 
 func validateServer(cmd *cobra.Command, args []string) {

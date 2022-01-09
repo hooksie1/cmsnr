@@ -6,33 +6,54 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func NewDeployment(name, namespace string, port int) *appsv1.Deployment {
+type Deployment struct {
+	Name       string
+	Namespace  string
+	ServerType string
+	SecretName string
+	Port       int
+}
+
+func NewDeployment(name, namespace, serverType, secretName string, port int) *appsv1.Deployment {
+	dep := Deployment{
+		Name:       name,
+		Namespace:  namespace,
+		ServerType: serverType,
+		SecretName: secretName,
+		Port:       port,
+	}
+
+	return dep.newDeployment()
+
+}
+
+func (d *Deployment) newDeployment() *appsv1.Deployment {
 	return &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Deployment",
 			APIVersion: "apps/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
+			Name:      d.Name,
+			Namespace: d.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app": name,
+					"app": d.Name,
 				},
 			},
-			Template: getTemplate(name, port),
+			Template: d.getTemplate(),
 		},
 	}
 }
 
-func getTemplate(name string, port int) corev1.PodTemplateSpec {
+func (d *Deployment) getTemplate() corev1.PodTemplateSpec {
 	return corev1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
+			Name: d.Name,
 			Labels: map[string]string{
-				"app": name,
+				"app": d.Name,
 			},
 		},
 		Spec: corev1.PodSpec{
@@ -40,12 +61,12 @@ func getTemplate(name string, port int) corev1.PodTemplateSpec {
 				{
 					Image:           "hooksie1/cmsnr",
 					ImagePullPolicy: "Always",
-					Name:            name,
-					Args:            []string{"server", "start", "mutating"},
+					Name:            d.Name,
+					Args:            []string{"server", "start", d.ServerType},
 					Ports: []corev1.ContainerPort{
 						{
 							Name:          "https",
-							ContainerPort: int32(port),
+							ContainerPort: int32(d.Port),
 						},
 					},
 					VolumeMounts: []corev1.VolumeMount{
@@ -61,7 +82,7 @@ func getTemplate(name string, port int) corev1.PodTemplateSpec {
 					Name: "webhook-certs",
 					VolumeSource: corev1.VolumeSource{
 						Secret: &corev1.SecretVolumeSource{
-							SecretName: "cmsnr-secret",
+							SecretName: d.SecretName,
 						},
 					},
 				},

@@ -34,7 +34,8 @@ func printKind(i interface{}) {
 func generate(cmd *cobra.Command, args []string) {
 	mService := "cmsnr-mutating-webhook"
 	vService := "cmsnr-validating-webhook"
-	//secret := viper.GetString("secret")
+	mSecret := fmt.Sprintf("mutating-%s", viper.GetString("secret"))
+	vSecret := fmt.Sprintf("validating-%s", viper.GetString("secret"))
 	port := viper.GetInt("port")
 	namespace := viper.GetString("namespace")
 
@@ -57,11 +58,13 @@ func generate(cmd *cobra.Command, args []string) {
 	printKind(deployment.NewClusterRole())
 	printKind(deployment.NewClusterRolebinding(namespace))
 	fmt.Println(deployment.NewCRD())
-	//printKind(deployment.NewMutatingDeployment(service, ))
-	//printKind(deployment.NewMutatingService())
-	printKind(deployment.CertAsSecret(mCert, mKey, "mutating-secret", namespace))
-	printKind(deployment.CertAsSecret(vCert, vKey, "validating-secret", namespace))
-	printKind(mw)
-	printKind(vw)
+	printKind(deployment.NewDeployment(mService, namespace, "mutating", mSecret, port))
+	printKind(deployment.NewDeployment(vService, namespace, "validating", vSecret, port))
+	printKind(deployment.NewService(mService, namespace, port))
+	printKind(deployment.NewService(vService, namespace, port))
+	printKind(deployment.CertAsSecret(mCert, mKey, mSecret, namespace))
+	printKind(deployment.CertAsSecret(vCert, vKey, vSecret, namespace))
+	printKind(mw.Config)
+	printKind(vw.Config)
 
 }
