@@ -28,3 +28,8 @@ type OpaPolicyList struct {
 
 	Items []OpaPolicy `json:"items"`
 }
+
+type OpaMessage struct {
+	Method    string
+	OpaPolicy OpaPolicy
+}

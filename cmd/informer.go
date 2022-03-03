@@ -11,8 +11,8 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
-func WatchResources(clientSet v1alpha1.OpaV1Alpha1Interface, namespace string) cache.Store {
-	opaStore, opaController := cache.NewInformer(
+func WatchResources(clientSet v1alpha1.OpaV1Alpha1Interface, namespace string, inform chan<- v1alpha1.OpaMessage) {
+	_, opaController := cache.NewInformer(
 		&cache.ListWatch{
 			ListFunc: func(lo metav1.ListOptions) (result runtime.Object, err error) {
 				return clientSet.OpaPolicies(namespace).List(lo)
@@ -23,9 +23,39 @@ func WatchResources(clientSet v1alpha1.OpaV1Alpha1Interface, namespace string) c
 		},
 		&v1alpha1.OpaPolicy{},
 		1*time.Minute,
-		cache.ResourceEventHandlerFuncs{},
+		cache.ResourceEventHandlerFuncs{
+			DeleteFunc: func(obj interface{}) {
+				if r, ok := obj.(*v1alpha1.OpaPolicy); ok {
+					m := v1alpha1.OpaMessage{
+						Method:    "delete",
+						OpaPolicy: *r,
+					}
+
+					inform <- m
+				}
+			},
+			UpdateFunc: func(oldObj interface{}, newObj interface{}) {
+				if r, ok := newObj.(*v1alpha1.OpaPolicy); ok {
+					m := v1alpha1.OpaMessage{
+						Method:    "update",
+						OpaPolicy: *r,
+					}
+
+					inform <- m
+				}
+			},
+			AddFunc: func(obj interface{}) {
+				if r, ok := obj.(*v1alpha1.OpaPolicy); ok {
+					m := v1alpha1.OpaMessage{
+						Method:    "add",
+						OpaPolicy: *r,
+					}
+
+					inform <- m
+				}
+			},
+		},
 	)
 
 	go opaController.Run(wait.NeverStop)
-	return opaStore
 }
