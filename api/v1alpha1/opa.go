@@ -29,6 +29,7 @@ type OpaPolicyList struct {
 	Items []OpaPolicy `json:"items"`
 }
 
+// OpaMessage is used by the watcher to inform the client of OPA policy changes
 type OpaMessage struct {
 	Method    string
 	OpaPolicy OpaPolicy
