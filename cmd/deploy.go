@@ -25,7 +25,7 @@ func init() {
 func printKind(i interface{}) {
 	o, err := yaml.Marshal(i)
 	if err != nil {
-		log.Error("error printing object: %s", err)
+		log.Errorf("error printing object: %s", err)
 		os.Exit(2)
 	}
 
