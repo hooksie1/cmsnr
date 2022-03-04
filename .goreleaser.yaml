@@ -3,7 +3,7 @@ before:
   - go mod tidy
 
 builds:
-  - ldflags: "-extldflags= -w -X 'github.com/hooksie1/cmsnr/cmd.Version={{.Tag}}-{{.ShortCommit}}"
+  - ldflags: "-extldflags= -w -X 'github.com/hooksie1/cmsnr/cmd.Version={{.Tag}}-{{.ShortCommit}}'"
     env:
       - "CGO_ENABLED=0"
       - "GO111MODULE=on"
