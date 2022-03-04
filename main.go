@@ -16,7 +16,7 @@ limitations under the License.
 package main
 
 import (
-	"gitlab.com/hooksie1/cmsnr/cmd"
+	"github.com/hooksie1/cmsnr/cmd"
 	"k8s.io/klog/v2"
 )
 

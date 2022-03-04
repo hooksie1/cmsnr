@@ -7,10 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hooksie1/cmsnr/api/v1alpha1"
+	"github.com/hooksie1/cmsnr/pkg/client"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gitlab.com/hooksie1/cmsnr/api/v1alpha1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 )
@@ -22,10 +23,7 @@ var watchCmd = &cobra.Command{
 	Run:   watchPolicies,
 }
 
-var versions map[string]string
-
 func init() {
-	versions = make(map[string]string)
 
 	opaCmd.AddCommand(watchCmd)
 
@@ -35,60 +33,60 @@ func init() {
 }
 
 func watchPolicies(cmd *cobra.Command, args []string) {
-	var config *rest.Config
-	var err error
-
 	deploymentName := viper.GetString("deployment")
-
-	config, err = rest.InClusterConfig()
-	if err != nil {
-		log.Error(err)
-		os.Exit(1)
-	}
 
 	v1alpha1.BuildScheme(scheme.Scheme)
 
-	clientSet, err := v1alpha1.NewForConfig(config)
+	config, err := rest.InClusterConfig()
 	if err != nil {
-		log.Error(err)
+		log.Println(err)
 		os.Exit(1)
 	}
 
-	store := WatchResources(clientSet, namespace)
+	client, err := client.NewClient(config, namespace)
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+
+	client.WatchResources()
 
 	log.Infof("watching for policy changes with deployment name: %s", deploymentName)
-	for {
-		var name string
-		var version string
-		var depName string
-		opaFromStore := store.List()
-		for _, v := range opaFromStore {
-			name = v.(*v1alpha1.OpaPolicy).Name
-			depName = v.(*v1alpha1.OpaPolicy).Spec.DeploymentName
-			version = v.(*v1alpha1.OpaPolicy).ResourceVersion
+	for v := range client.Queue {
+		if v.OpaPolicy.Spec.DeploymentName != deploymentName {
+			continue
+		}
 
-			if depName != deploymentName {
-				continue
-			}
+		if v.OpaPolicy.Spec.DeploymentName == "" {
+			continue
+		}
 
-			if depName == "" {
-				versions[name] = version
-			}
-
-			if versions[name] == version {
-				continue
-			}
-
-			log.Infof("Found policy change for policy %s, updating policy", name)
-			versions[name] = version
-			if err := updatePolicy(v.(*v1alpha1.OpaPolicy)); err != nil {
+		switch v.Method {
+		case "add":
+			log.Infof("found new opa policy %s for deployment %s", v.OpaPolicy.Spec.PolicyName, v.OpaPolicy.Spec.DeploymentName)
+			if err := updatePolicy(&v.OpaPolicy); err != nil {
 				log.Error(err)
 				os.Exit(1)
 			}
-
+		case "update":
+			log.Infof("found update for opa policy %s for deployment %s", v.OpaPolicy.Spec.PolicyName, v.OpaPolicy.Spec.DeploymentName)
+			if err := updatePolicy(&v.OpaPolicy); err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+		case "delete":
+			log.Infof("deleting opa policy %s for deployment %s", v.OpaPolicy.Spec.PolicyName, v.OpaPolicy.Spec.DeploymentName)
+			if err := deletePolicy(&v.OpaPolicy); err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
 		}
+
 		time.Sleep(2 * time.Second)
 	}
+
+	close(client.Queue)
+
 }
 
 func updatePolicy(p *v1alpha1.OpaPolicy) error {
@@ -108,6 +106,27 @@ func updatePolicy(p *v1alpha1.OpaPolicy) error {
 
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("error posting policy")
+	}
+
+	return nil
+}
+
+func deletePolicy(p *v1alpha1.OpaPolicy) error {
+	url := fmt.Sprintf("http://localhost:8181/v1/policies/%s", p.Spec.PolicyName)
+	client := http.Client{}
+
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("error deleting policy")
 	}
 
 	return nil

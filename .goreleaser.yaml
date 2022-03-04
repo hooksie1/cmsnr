@@ -1,0 +1,18 @@
+before:
+  hooks:
+  - go mod tidy
+
+builds:
+  - ldflags: "-extldflags=-w -X 'github.com/hooksie1/cmsnr/cmd.Version={{.Tag}}-{{.ShortCommit}}"
+    env:
+      - "CGO_ENABLED=0"
+      - "GO111MODULE=on"
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+source:
+  enabled: true

@@ -2,9 +2,10 @@ package server
 
 import (
 	"context"
-	"github.com/open-policy-agent/opa/rego"
-	api "gitlab.com/hooksie1/cmsnr/api/v1alpha1"
 	"net/http"
+
+	api "github.com/hooksie1/cmsnr/api/v1alpha1"
+	"github.com/open-policy-agent/opa/rego"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
