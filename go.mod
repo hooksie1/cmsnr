@@ -1,4 +1,4 @@
-module gitlab.com/hooksie1/cmsnr
+module github.com/hooksie1/cmsnr
 
 go 1.16
 

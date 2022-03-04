@@ -1,9 +1,9 @@
-package cmd
+package client
 
 import (
 	"time"
 
-	"gitlab.com/hooksie1/cmsnr/api/v1alpha1"
+	"github.com/hooksie1/cmsnr/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -11,14 +11,16 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
-func WatchResources(clientSet v1alpha1.OpaV1Alpha1Interface, namespace string, inform chan<- v1alpha1.OpaMessage) {
+// Watch resources watches for new OPA resources. If they are found, they are passed
+// to the event handler functions that send them as a message to the client.
+func (c *Client) WatchResources() {
 	_, opaController := cache.NewInformer(
 		&cache.ListWatch{
 			ListFunc: func(lo metav1.ListOptions) (result runtime.Object, err error) {
-				return clientSet.OpaPolicies(namespace).List(lo)
+				return c.ClientSet.OpaPolicies(c.Namespace).List(lo)
 			},
 			WatchFunc: func(lo metav1.ListOptions) (watch.Interface, error) {
-				return clientSet.OpaPolicies(namespace).Watch(lo)
+				return c.ClientSet.OpaPolicies(c.Namespace).Watch(lo)
 			},
 		},
 		&v1alpha1.OpaPolicy{},
@@ -31,7 +33,7 @@ func WatchResources(clientSet v1alpha1.OpaV1Alpha1Interface, namespace string, i
 						OpaPolicy: *r,
 					}
 
-					inform <- m
+					c.Queue <- m
 				}
 			},
 			UpdateFunc: func(oldObj interface{}, newObj interface{}) {
@@ -41,7 +43,7 @@ func WatchResources(clientSet v1alpha1.OpaV1Alpha1Interface, namespace string, i
 						OpaPolicy: *r,
 					}
 
-					inform <- m
+					c.Queue <- m
 				}
 			},
 			AddFunc: func(obj interface{}) {
@@ -51,7 +53,7 @@ func WatchResources(clientSet v1alpha1.OpaV1Alpha1Interface, namespace string, i
 						OpaPolicy: *r,
 					}
 
-					inform <- m
+					c.Queue <- m
 				}
 			},
 		},

@@ -1,11 +1,12 @@
 package cmd
 
 import (
+	"os"
+
+	"github.com/hooksie1/cmsnr/pkg/server"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gitlab.com/hooksie1/cmsnr/pkg/server"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"

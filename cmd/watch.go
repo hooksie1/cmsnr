@@ -7,10 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hooksie1/cmsnr/api/v1alpha1"
+	"github.com/hooksie1/cmsnr/pkg/client"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gitlab.com/hooksie1/cmsnr/api/v1alpha1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 )
@@ -32,31 +33,26 @@ func init() {
 }
 
 func watchPolicies(cmd *cobra.Command, args []string) {
-	var config *rest.Config
-	var err error
-
 	deploymentName := viper.GetString("deployment")
-
-	config, err = rest.InClusterConfig()
-	if err != nil {
-		log.Error(err)
-		os.Exit(1)
-	}
 
 	v1alpha1.BuildScheme(scheme.Scheme)
 
-	clientSet, err := v1alpha1.NewForConfig(config)
+	config, err := rest.InClusterConfig()
 	if err != nil {
-		log.Error(err)
+		log.Println(err)
 		os.Exit(1)
 	}
 
-	messages := make(chan v1alpha1.OpaMessage)
+	client, err := client.NewClient(config, namespace)
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
 
-	WatchResources(clientSet, namespace, messages)
+	client.WatchResources()
 
 	log.Infof("watching for policy changes with deployment name: %s", deploymentName)
-	for v := range messages {
+	for v := range client.Queue {
 		if v.OpaPolicy.Spec.DeploymentName != deploymentName {
 			continue
 		}
@@ -89,7 +85,7 @@ func watchPolicies(cmd *cobra.Command, args []string) {
 		time.Sleep(2 * time.Second)
 	}
 
-	close(messages)
+	close(client.Queue)
 
 }
 

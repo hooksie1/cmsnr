@@ -2,11 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
+	"github.com/hooksie1/cmsnr/pkg/deployment"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gitlab.com/hooksie1/cmsnr/pkg/deployment"
-	"os"
 	"sigs.k8s.io/yaml"
 )
 
