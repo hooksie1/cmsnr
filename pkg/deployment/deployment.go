@@ -1,6 +1,8 @@
 package deployment
 
 import (
+	"fmt"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -59,10 +61,10 @@ func (d *Deployment) getTemplate() corev1.PodTemplateSpec {
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				{
-					Image:           "hooksie1/cmsnr",
+					Image:           "hooksie1/cmsnr:latest",
 					ImagePullPolicy: "Always",
 					Name:            d.Name,
-					Args:            []string{"server", "start", d.ServerType},
+					Args:            []string{"server", "start", d.ServerType, fmt.Sprintf("-n=%s", d.Namespace)},
 					Ports: []corev1.ContainerPort{
 						{
 							Name:          "https",
