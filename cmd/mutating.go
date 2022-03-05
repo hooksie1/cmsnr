@@ -35,7 +35,8 @@ func mutateServer(cmd *cobra.Command, args []string) {
 	}
 
 	injector := server.SidecarInjector{
-		Client: mgr.GetClient(),
+		Client:    mgr.GetClient(),
+		Namespace: namespace,
 	}
 	log.Info("setting up server")
 	mgrServer := mgr.GetWebhookServer()

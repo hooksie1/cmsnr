@@ -38,7 +38,6 @@ func generate(cmd *cobra.Command, args []string) {
 	mSecret := fmt.Sprintf("mutating-%s", viper.GetString("secret"))
 	vSecret := fmt.Sprintf("validating-%s", viper.GetString("secret"))
 	port := viper.GetInt("port")
-	namespace := viper.GetString("namespace")
 
 	mCert, mKey, err := deployment.GenerateCertificate(mService, namespace)
 	if err != nil {

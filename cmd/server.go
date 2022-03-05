@@ -17,8 +17,6 @@ func init() {
 	viper.BindPFlag("service", serverCmd.PersistentFlags().Lookup("service"))
 	serverCmd.PersistentFlags().String("secret", "cmsnr-secret", "Secret name")
 	viper.BindPFlag("secret", serverCmd.PersistentFlags().Lookup("secret"))
-	serverCmd.PersistentFlags().String("namespace", "default", "Namespace")
-	viper.BindPFlag("namespace", serverCmd.PersistentFlags().Lookup("namespace"))
 
 }
 
