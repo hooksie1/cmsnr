@@ -17,10 +17,8 @@ package main
 
 import (
 	"github.com/hooksie1/cmsnr/cmd"
-	"k8s.io/klog/v2"
 )
 
 func main() {
 	cmd.Execute()
-	klog.Flush()
 }
