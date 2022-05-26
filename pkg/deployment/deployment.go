@@ -14,15 +14,17 @@ type Deployment struct {
 	ServerType string
 	SecretName string
 	Port       int
+	Version    string
 }
 
-func NewDeployment(name, namespace, serverType, secretName string, port int) *appsv1.Deployment {
+func NewDeployment(name, namespace, serverType, secretName string, port int, version string) *appsv1.Deployment {
 	dep := Deployment{
 		Name:       name,
 		Namespace:  namespace,
 		ServerType: serverType,
 		SecretName: secretName,
 		Port:       port,
+		Version:    version,
 	}
 
 	return dep.newDeployment()
@@ -61,7 +63,7 @@ func (d *Deployment) getTemplate() corev1.PodTemplateSpec {
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				{
-					Image:           "hooksie1/cmsnr:latest",
+					Image:           fmt.Sprintf("hooksie1/cmsnr:%s", d.Version),
 					ImagePullPolicy: "Always",
 					Name:            d.Name,
 					Args:            []string{"server", "start", d.ServerType, fmt.Sprintf("-n=%s", d.Namespace)},

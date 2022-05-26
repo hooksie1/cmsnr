@@ -37,10 +37,20 @@ func (c *Client) WatchResources() {
 				}
 			},
 			UpdateFunc: func(oldObj interface{}, newObj interface{}) {
-				if r, ok := newObj.(*v1alpha1.OpaPolicy); ok {
+				o, ok := oldObj.(*v1alpha1.OpaPolicy)
+				if !ok {
+					return
+				}
+				n, ok := newObj.(*v1alpha1.OpaPolicy)
+				if !ok {
+					return
+				}
+
+				// checking if spec matches. If not this is truly an update
+				if o.Spec.Policy != n.Spec.Policy {
 					m := v1alpha1.OpaMessage{
 						Method:    "update",
-						OpaPolicy: *r,
+						OpaPolicy: *n,
 					}
 
 					c.Queue <- m
