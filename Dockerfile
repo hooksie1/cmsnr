@@ -3,7 +3,7 @@ WORKDIR /app
 RUN apk update && apk upgrade && apk add --no-cache ca-certificates git
 RUN update-ca-certificates
 ADD . /app/
-RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags="-s -w" -installsuffix cgo -o cmsnrctl .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags="-s -w -X 'github.com/hooksie1/cmsnr/cmd.Version=$(printf $(git describe --tags | cut -d '-' -f 1)-$(git rev-parse --short HEAD))'" -installsuffix cgo -o cmsnrctl .
 
 
 FROM scratch
