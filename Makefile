@@ -1,5 +1,5 @@
 PROJECT_NAME := "cmsnr"
-PKG := "gitlab.com/hooksie1/$(PROJECT_NAME)"
+PKG := "github.com/hooksie1/$(PROJECT_NAME)"
 PKG_LIST := $(shell go list ${PKG}/... | grep -v /vendor/)
 GO_FILES := $(shell find . -name '*.go' | grep -v /vendor/ | grep -v _test.go)
 VERSION := $$(git describe --tags | cut -d '-' -f 1)
@@ -31,7 +31,7 @@ windows: dep
 	CGO_ENABLED=0 GOOS=windows go build -a -ldflags "-w -X '$(PKG)/cmd.Version=$(VERSION)'" -o $(PROJECT_NAME)ctl.exe
 
 mac: dep
-	CGO_ENABLED=0 GOOS=darwin go build -a -ldflags "-w -X '$(PKG)/cmd.Version=$(VERSION)'" -o $(PROJECT_NAME)ctl-darwin
+	CGO_ENABLED=0 GOOS=darwin go build -a -ldflags "-s -w -X '$(PKG)/cmd.Version=$(VERSION)'" -o $(PROJECT_NAME)ctl-darwin
 
 
 clean: ## Remove previous build

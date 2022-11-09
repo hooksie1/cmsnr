@@ -15,9 +15,10 @@ type Deployment struct {
 	SecretName string
 	Port       int
 	Version    string
+	Registry   string
 }
 
-func NewDeployment(name, namespace, serverType, secretName string, port int, version string) *appsv1.Deployment {
+func NewDeployment(name, namespace, registry, serverType, secretName string, port int, version string) *appsv1.Deployment {
 	dep := Deployment{
 		Name:       name,
 		Namespace:  namespace,
@@ -25,6 +26,7 @@ func NewDeployment(name, namespace, serverType, secretName string, port int, ver
 		SecretName: secretName,
 		Port:       port,
 		Version:    version,
+		Registry:   registry,
 	}
 
 	return dep.newDeployment()
@@ -63,10 +65,10 @@ func (d *Deployment) getTemplate() corev1.PodTemplateSpec {
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				{
-					Image:           fmt.Sprintf("hooksie1/cmsnr:%s", d.Version),
+					Image:           fmt.Sprintf("%s/cmsnr:%s", d.Registry, d.Version),
 					ImagePullPolicy: "Always",
 					Name:            d.Name,
-					Args:            []string{"server", "start", d.ServerType, fmt.Sprintf("-n=%s", d.Namespace)},
+					Args:            []string{"server", "start", fmt.Sprintf("--registry=%s", d.Registry), d.ServerType, fmt.Sprintf("-n=%s", d.Namespace)},
 					Ports: []corev1.ContainerPort{
 						{
 							Name:          "https",
