@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"os"
 
 	"github.com/spf13/viper"
 )
@@ -35,6 +36,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cmsnr.yaml)")
 	rootCmd.PersistentFlags().StringVarP(&v, "verbosity", "v", logrus.InfoLevel.String(), "Logging level")
 	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "default", "The namespace to use")
+	rootCmd.PersistentFlags().StringP("registry", "r", "hooksie1", "Container registry")
+	viper.BindPFlag("registry", rootCmd.PersistentFlags().Lookup("registry"))
 
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		if err := setLogLevel(v); err != nil {
