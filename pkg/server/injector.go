@@ -19,11 +19,12 @@ type Config struct {
 type SidecarInjector struct {
 	Namespace string
 	Registry  string
+	Image     string
 	Client    client.Client
 	decoder   *admission.Decoder
 }
 
-func getContainers(namespace, depName, registry string) []corev1.Container {
+func getContainers(namespace, depName, registry, image string) []corev1.Container {
 	return []corev1.Container{
 		{
 			Name:            "opa",
@@ -33,7 +34,7 @@ func getContainers(namespace, depName, registry string) []corev1.Container {
 		},
 		{
 			Name:            "cmsnr-client",
-			Image:           fmt.Sprintf("%s/cmsnr:latest", registry),
+			Image:           fmt.Sprintf("%s/%s:latest", registry, image),
 			ImagePullPolicy: corev1.PullPolicy("IfNotPresent"),
 			Args:            []string{"opa", "watch", fmt.Sprintf("-d=%s", depName), fmt.Sprintf("-n=%s", namespace)},
 		},
@@ -63,7 +64,7 @@ func (s *SidecarInjector) Handle(ctx context.Context, r admission.Request) admis
 
 	if checkInject(pod) {
 		log.Infof("Injecting sidecar for %s", pod.Name)
-		pod.Spec.Containers = append(pod.Spec.Containers, getContainers(s.Namespace, pod.Annotations["cmsnr.com/deploymentName"], s.Registry)...)
+		pod.Spec.Containers = append(pod.Spec.Containers, getContainers(s.Namespace, pod.Annotations["cmsnr.com/deploymentName"], s.Registry, s.Image)...)
 		if pod.Spec.ServiceAccountName == "default" {
 			log.Info("no service account defined, adding cmsnr account")
 			pod.Spec.ServiceAccountName = "cmsnr"

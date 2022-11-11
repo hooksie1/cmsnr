@@ -38,6 +38,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "default", "The namespace to use")
 	rootCmd.PersistentFlags().StringP("registry", "r", "hooksie1", "Container registry")
 	viper.BindPFlag("registry", rootCmd.PersistentFlags().Lookup("registry"))
+	rootCmd.PersistentFlags().StringP("image", "i", "cmsnr", "Container image")
+	viper.BindPFlag("image", rootCmd.PersistentFlags().Lookup("image"))
 
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		if err := setLogLevel(v); err != nil {

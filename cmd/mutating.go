@@ -27,6 +27,7 @@ func init() {
 func mutateServer(cmd *cobra.Command, args []string) {
 	port := viper.GetInt("port")
 	registry := viper.GetString("registry")
+	image := viper.GetString("image")
 	log.Debugf("mutating webhook port: %d", port)
 	log.Info("setting up webhook server")
 	mgr, err := manager.New(config.GetConfigOrDie(), manager.Options{})
@@ -39,6 +40,7 @@ func mutateServer(cmd *cobra.Command, args []string) {
 		Client:    mgr.GetClient(),
 		Namespace: namespace,
 		Registry:  registry,
+		Image:     image,
 	}
 	log.Info("setting up server")
 	mgrServer := mgr.GetWebhookServer()
