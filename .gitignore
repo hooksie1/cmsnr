@@ -2,3 +2,4 @@ cmsnrctl
 cmsnrctl.exe
 cmsnrctl-darwin
 .idea
+dist/
