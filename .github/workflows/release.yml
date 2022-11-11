@@ -45,10 +45,7 @@ jobs:
       contents: write 
     runs-on: ubuntu-latest
     needs: test
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     steps:
-      - name: Get tag and hash
-        run: echo "::set-output name=tag_hash::$(printf $(git describe --tags | cut -d '-' -f 1)-$(git rev-parse --short HEAD))"
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -88,5 +85,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: |
             hooksie1/cmsnr:latest
-            hooksie1/cmsnr:{{ steps.vars.outputs.tag_hash}}
+            hooksie1/cmsnr:${{ github.ref_name }}
 
