@@ -7,23 +7,6 @@ env:
   
 project_name: cmsnrctl
 
-dockers:
-  - use: buildx
-    dockerfile: "Dockerfile.goreleaser"
-    goarch: amd64
-    image_templates:
-    - "docker.io/hooksie1/cmsnr:{{.Tag}}-{{.ShortCommit}}"
-    - "docker.io/hooksie1/cmsnr:latest"
-    build_flag_templates:
-      - "--platform=linux/amd64"
-  - use: buildx
-    dockerfile: "Dockerfile.goreleaser"
-    goarch: arm64
-    image_templates:
-    - "docker.io/hooksie1/cmsnr:{{.Tag}}-{{.ShortCommit}}-arm"
-    - "docker.io/hooksie1/cmsnr:latest-arm"
-    build_flag_templates:
-      - "--platform=linux/arm64/v8"
 builds:
   - ldflags: "-extldflags= -w -X 'github.com/hooksie1/cmsnr/cmd.Version={{.Tag}}-{{.ShortCommit}}'"
     env:
