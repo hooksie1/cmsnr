@@ -1,0 +1,5 @@
+name: cmsnr
+title: cmsnr
+version: main
+nav:
+  - modules/ROOT/nav.adoc
