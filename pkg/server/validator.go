@@ -2,10 +2,11 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	api "github.com/hooksie1/cmsnr/api/v1alpha1"
-	"github.com/open-policy-agent/opa/rego"
+	"github.com/open-policy-agent/opa/ast"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
@@ -22,15 +23,11 @@ func (v *Validator) Handle(ctx context.Context, req admission.Request) admission
 		return admission.Errored(http.StatusBadRequest, err)
 	}
 
-	rego := rego.New(
-		rego.Query("data.test"),
-		rego.Module("example.rego",
-			opa.Spec.Policy,
-		))
-
-	_, err := rego.Compile(ctx)
+	_, err := ast.ParseModule("example.rego", opa.Spec.Policy)
 	if err != nil {
-		return admission.Denied(err.Error())
+		e := fmt.Sprintf("eval error: %v", err.Error())
+		return admission.Denied(e)
+
 	}
 
 	return admission.Allowed("policy is valid")

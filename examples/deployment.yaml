@@ -20,6 +20,7 @@ spec:
       - image: alpine
         imagePullPolicy: Always
         name: alpine
-        command: ["sleep"]
+        command: ["tail"]
         args:
-          - "1000"
+          - -f
+          - /dev/null
