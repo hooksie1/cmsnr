@@ -36,5 +36,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: |
             hooksie1/cmsnr:latest
-            hooksie1/cmsnr:$(shell if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then git describe --exact-match --tags HEAD 2>/dev/null || echo "dev-$(shell git rev-parse --short HEAD)"; else echo "dev"; fi)
+            hooksie1/cmsnr:$(if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then git describe --exact-match --tags HEAD 2>/dev/null || echo "dev-$(git rev-parse --short HEAD)"; else echo "dev"; fi)
             hooksie1/cmsnr:${{ github.sha }}
