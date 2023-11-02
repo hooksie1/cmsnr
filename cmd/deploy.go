@@ -20,6 +20,8 @@ var deployCmd = &cobra.Command{
 
 func init() {
 	serverCmd.AddCommand(deployCmd)
+	deployCmd.Flags().String("version", Version, "version of the app")
+	viper.BindPFlag("version", deployCmd.Flags().Lookup("version"))
 }
 
 func printKind(i interface{}) {
@@ -39,6 +41,7 @@ func generate(cmd *cobra.Command, args []string) {
 	vSecret := fmt.Sprintf("validating-%s", viper.GetString("secret"))
 	port := viper.GetInt("port")
 	registry := viper.GetString("registry")
+	version := viper.GetString("version")
 
 	mCert, mKey, err := deployment.GenerateCertificate(mService, namespace)
 	if err != nil {
@@ -59,8 +62,8 @@ func generate(cmd *cobra.Command, args []string) {
 	printKind(deployment.NewClusterRole())
 	printKind(deployment.NewClusterRolebinding(namespace))
 	fmt.Println(deployment.NewCRD())
-	printKind(deployment.NewDeployment(mService, namespace, registry, "mutating", mSecret, port, Version))
-	printKind(deployment.NewDeployment(vService, namespace, registry, "validating", vSecret, port, Version))
+	printKind(deployment.NewDeployment(mService, namespace, registry, "mutating", mSecret, port, version))
+	printKind(deployment.NewDeployment(vService, namespace, registry, "validating", vSecret, port, version))
 	printKind(deployment.NewService(mService, namespace, port))
 	printKind(deployment.NewService(vService, namespace, port))
 	printKind(deployment.CertAsSecret(mCert, mKey, mSecret, namespace))
