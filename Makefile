@@ -2,7 +2,7 @@ PROJECT_NAME := "cmsnr"
 PKG := "github.com/hooksie1/$(PROJECT_NAME)"
 PKG_LIST := $(shell go list ${PKG}/... | grep -v /vendor/)
 GO_FILES := $(shell find . -name '*.go' | grep -v /vendor/ | grep -v _test.go)
-VERSION := $$(git describe --tags | cut -d '-' -f 1)
+VERSION := $(shell if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then git describe --exact-match --tags HEAD 2>/dev/null || echo "dev-$(shell git rev-parse --short HEAD)"; else echo "dev"; fi)
 
 
 .PHONY: all build docker dep clean test coverage lint
