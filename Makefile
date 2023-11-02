@@ -54,7 +54,7 @@ deploy-local: k8s-up cmsnrctl docker-local ## Creates a local k8s cluster, build
 
 k8s-up: ## Creates a local kubernetes cluster with a registry
 	k3d registry create cmsnr-registry --port 50000
-	k3d cluster create cmsnr --registry-use k3d-cmsnr-registry:50000 --servers 3 -p "8080:80@loadbalancer" -p "4222:30842@server:0,1,2"
+	k3d cluster create cmsnr --registry-use k3d-cmsnr-registry:50000 --servers 3 -p "8080:80@loadbalancer"
 
 k8s-down: ## Destroys the k8s cluster and registry
 	k3d registry delete cmsnr-registry
