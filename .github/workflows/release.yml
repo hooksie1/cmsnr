@@ -36,4 +36,4 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: |
             hooksie1/cmsnr:latest
-            hooksie1/cmsnr:${{ github.ref_name }}
+            hooksie1/cmsnr:${{ github.sha }}
