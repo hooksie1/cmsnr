@@ -60,6 +60,9 @@ k8s-down: ## Destroys the k8s cluster and registry
 	k3d registry delete cmsnr-registry
 	k3d cluster delete cmsnr
 
+version:
+	@echo $(VERSION)
+
 clean: ## Remove previous build
 	git clean -fd
 	git clean -fx
