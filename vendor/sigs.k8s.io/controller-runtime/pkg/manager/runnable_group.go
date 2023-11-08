@@ -28,7 +28,6 @@ type runnableCheck func(ctx context.Context) bool
 // runnables handles all the runnables for a manager by grouping them accordingly to their
 // type (webhooks, caches etc.).
 type runnables struct {
-	HTTPServers    *runnableGroup
 	Webhooks       *runnableGroup
 	Caches         *runnableGroup
 	LeaderElection *runnableGroup
@@ -36,13 +35,12 @@ type runnables struct {
 }
 
 // newRunnables creates a new runnables object.
-func newRunnables(baseContext BaseContextFunc, errChan chan error) *runnables {
+func newRunnables(errChan chan error) *runnables {
 	return &runnables{
-		HTTPServers:    newRunnableGroup(baseContext, errChan),
-		Webhooks:       newRunnableGroup(baseContext, errChan),
-		Caches:         newRunnableGroup(baseContext, errChan),
-		LeaderElection: newRunnableGroup(baseContext, errChan),
-		Others:         newRunnableGroup(baseContext, errChan),
+		Webhooks:       newRunnableGroup(errChan),
+		Caches:         newRunnableGroup(errChan),
+		LeaderElection: newRunnableGroup(errChan),
+		Others:         newRunnableGroup(errChan),
 	}
 }
 
@@ -54,13 +52,11 @@ func newRunnables(baseContext BaseContextFunc, errChan chan error) *runnables {
 // The runnables added after Start are started directly.
 func (r *runnables) Add(fn Runnable) error {
 	switch runnable := fn.(type) {
-	case *server:
-		return r.HTTPServers.Add(fn, nil)
 	case hasCache:
 		return r.Caches.Add(fn, func(ctx context.Context) bool {
 			return runnable.GetCache().WaitForCacheSync(ctx)
 		})
-	case webhook.Server:
+	case *webhook.Server:
 		return r.Webhooks.Add(fn, nil)
 	case LeaderElectionRunnable:
 		if !runnable.NeedLeaderElection() {
@@ -104,15 +100,14 @@ type runnableGroup struct {
 	wg *sync.WaitGroup
 }
 
-func newRunnableGroup(baseContext BaseContextFunc, errChan chan error) *runnableGroup {
+func newRunnableGroup(errChan chan error) *runnableGroup {
 	r := &runnableGroup{
 		startReadyCh: make(chan *readyRunnable),
 		errChan:      errChan,
 		ch:           make(chan *readyRunnable),
 		wg:           new(sync.WaitGroup),
 	}
-
-	r.ctx, r.cancel = context.WithCancel(baseContext())
+	r.ctx, r.cancel = context.WithCancel(context.Background())
 	return r
 }
 

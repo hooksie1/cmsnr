@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/pelletier/go-toml/v2/unstable"
+	"github.com/pelletier/go-toml/v2/internal/ast"
 )
 
 type keyKind uint8
@@ -150,23 +150,23 @@ func (s *SeenTracker) setExplicitFlag(parentIdx int) {
 // CheckExpression takes a top-level node and checks that it does not contain
 // keys that have been seen in previous calls, and validates that types are
 // consistent.
-func (s *SeenTracker) CheckExpression(node *unstable.Node) error {
+func (s *SeenTracker) CheckExpression(node *ast.Node) error {
 	if s.entries == nil {
 		s.reset()
 	}
 	switch node.Kind {
-	case unstable.KeyValue:
+	case ast.KeyValue:
 		return s.checkKeyValue(node)
-	case unstable.Table:
+	case ast.Table:
 		return s.checkTable(node)
-	case unstable.ArrayTable:
+	case ast.ArrayTable:
 		return s.checkArrayTable(node)
 	default:
 		panic(fmt.Errorf("this should not be a top level node type: %s", node.Kind))
 	}
 }
 
-func (s *SeenTracker) checkTable(node *unstable.Node) error {
+func (s *SeenTracker) checkTable(node *ast.Node) error {
 	if s.currentIdx >= 0 {
 		s.setExplicitFlag(s.currentIdx)
 	}
@@ -219,7 +219,7 @@ func (s *SeenTracker) checkTable(node *unstable.Node) error {
 	return nil
 }
 
-func (s *SeenTracker) checkArrayTable(node *unstable.Node) error {
+func (s *SeenTracker) checkArrayTable(node *ast.Node) error {
 	if s.currentIdx >= 0 {
 		s.setExplicitFlag(s.currentIdx)
 	}
@@ -267,7 +267,7 @@ func (s *SeenTracker) checkArrayTable(node *unstable.Node) error {
 	return nil
 }
 
-func (s *SeenTracker) checkKeyValue(node *unstable.Node) error {
+func (s *SeenTracker) checkKeyValue(node *ast.Node) error {
 	parentIdx := s.currentIdx
 	it := node.Key()
 
@@ -297,26 +297,26 @@ func (s *SeenTracker) checkKeyValue(node *unstable.Node) error {
 	value := node.Value()
 
 	switch value.Kind {
-	case unstable.InlineTable:
+	case ast.InlineTable:
 		return s.checkInlineTable(value)
-	case unstable.Array:
+	case ast.Array:
 		return s.checkArray(value)
 	}
 
 	return nil
 }
 
-func (s *SeenTracker) checkArray(node *unstable.Node) error {
+func (s *SeenTracker) checkArray(node *ast.Node) error {
 	it := node.Children()
 	for it.Next() {
 		n := it.Node()
 		switch n.Kind {
-		case unstable.InlineTable:
+		case ast.InlineTable:
 			err := s.checkInlineTable(n)
 			if err != nil {
 				return err
 			}
-		case unstable.Array:
+		case ast.Array:
 			err := s.checkArray(n)
 			if err != nil {
 				return err
@@ -326,7 +326,7 @@ func (s *SeenTracker) checkArray(node *unstable.Node) error {
 	return nil
 }
 
-func (s *SeenTracker) checkInlineTable(node *unstable.Node) error {
+func (s *SeenTracker) checkInlineTable(node *ast.Node) error {
 	if pool.New == nil {
 		pool.New = func() interface{} {
 			return &SeenTracker{}
