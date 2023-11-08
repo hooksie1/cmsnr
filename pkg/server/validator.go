@@ -19,8 +19,6 @@ type Validator struct {
 func (v *Validator) Handle(ctx context.Context, req admission.Request) admission.Response {
 	opa := &api.OpaPolicy{}
 
-	fmt.Println(string(req.Object.Raw))
-
 	if err := v.decoder.Decode(req, opa); err != nil {
 		return admission.Errored(http.StatusBadRequest, err)
 	}
