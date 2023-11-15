@@ -52,6 +52,10 @@ deploy-local: k8s-up cmsnrctl docker-local ## Creates a local k8s cluster, build
 	kubectl wait pods -l app=cmsnr-mutating-webhook --for condition=Ready --timeout=30s
 	kubectl wait pods -l app=cmsnr-validatin-webhook --for condition=Ready --timeout=30s
 
+start: deploy-local
+
+stop: k8s-down
+
 k8s-up: ## Creates a local kubernetes cluster with a registry
 	k3d registry create cmsnr-registry --port 50000
 	k3d cluster create cmsnr --registry-use k3d-cmsnr-registry:50000 --servers 3 -p "8080:80@loadbalancer"
