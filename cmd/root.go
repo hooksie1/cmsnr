@@ -38,6 +38,10 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "default", "The namespace to use")
 	rootCmd.PersistentFlags().StringP("registry", "r", "hooksie1", "Container registry")
 	viper.BindPFlag("registry", rootCmd.PersistentFlags().Lookup("registry"))
+	rootCmd.PersistentFlags().String("opa-tag", "latest", "Tag for injected OPA server")
+	viper.BindPFlag("opatag", rootCmd.PersistentFlags().Lookup("opa-tag"))
+	rootCmd.PersistentFlags().String("cmsnr-tag", "latest", "Tag for injected cmsnr client")
+	viper.BindPFlag("cmsnrtag", rootCmd.PersistentFlags().Lookup("cmsnr-tag"))
 
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		if err := setLogLevel(v); err != nil {

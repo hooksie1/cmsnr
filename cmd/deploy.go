@@ -42,6 +42,8 @@ func generate(cmd *cobra.Command, args []string) {
 	port := viper.GetInt("port")
 	registry := viper.GetString("registry")
 	version := viper.GetString("version")
+	cmsnrtag := viper.GetString("cmsnrtag")
+	opatag := viper.GetString("opatag")
 
 	mCert, mKey, err := deployment.GenerateCertificate(mService, namespace)
 	if err != nil {
@@ -62,8 +64,8 @@ func generate(cmd *cobra.Command, args []string) {
 	printKind(deployment.NewClusterRole())
 	printKind(deployment.NewClusterRolebinding(namespace))
 	fmt.Println(deployment.NewCRD())
-	printKind(deployment.NewDeployment(mService, namespace, registry, "mutating", mSecret, port, version))
-	printKind(deployment.NewDeployment(vService, namespace, registry, "validating", vSecret, port, version))
+	printKind(deployment.NewDeployment(mService, namespace, registry, "mutating", mSecret, port, version, cmsnrtag, opatag))
+	printKind(deployment.NewDeployment(vService, namespace, registry, "validating", vSecret, port, version, cmsnrtag, opatag))
 	printKind(deployment.NewService(mService, namespace, port))
 	printKind(deployment.NewService(vService, namespace, port))
 	printKind(deployment.CertAsSecret(mCert, mKey, mSecret, namespace))

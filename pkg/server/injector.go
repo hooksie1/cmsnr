@@ -19,23 +19,25 @@ type Config struct {
 type SidecarInjector struct {
 	Namespace string
 	Registry  string
+	OPATag    string
+	CmsnrTag  string
 	Client    client.Client
 	decoder   *admission.Decoder
 }
 
-func getContainers(namespace, depName, registry string) []corev1.Container {
+func (s *SidecarInjector) getContainers(depName string) []corev1.Container {
 	return []corev1.Container{
 		{
 			Name:            "opa",
-			Image:           "openpolicyagent/opa:latest-static",
+			Image:           fmt.Sprintf("openpolicyagent/opa:%s", s.OPATag),
 			ImagePullPolicy: corev1.PullPolicy("IfNotPresent"),
 			Args:            []string{"run", "--server"},
 		},
 		{
 			Name:            "cmsnr-client",
-			Image:           fmt.Sprintf("%s/cmsnr:latest", registry),
+			Image:           fmt.Sprintf("%s/cmsnr:%s", s.Registry, s.CmsnrTag),
 			ImagePullPolicy: corev1.PullPolicy("IfNotPresent"),
-			Args:            []string{"opa", "watch", fmt.Sprintf("-d=%s", depName), fmt.Sprintf("-n=%s", namespace)},
+			Args:            []string{"opa", "watch", fmt.Sprintf("-d=%s", depName), fmt.Sprintf("-n=%s", s.Namespace)},
 		},
 	}
 }
@@ -63,7 +65,7 @@ func (s *SidecarInjector) Handle(ctx context.Context, r admission.Request) admis
 
 	if checkInject(pod) {
 		log.Infof("Injecting sidecar for %s", pod.Name)
-		pod.Spec.Containers = append(pod.Spec.Containers, getContainers(s.Namespace, pod.Annotations["cmsnr.com/deploymentName"], s.Registry)...)
+		pod.Spec.Containers = append(pod.Spec.Containers, s.getContainers(pod.Annotations["cmsnr.com/deploymentName"])...)
 		if pod.Spec.ServiceAccountName == "default" {
 			log.Info("no service account defined, adding cmsnr account")
 			pod.Spec.ServiceAccountName = "cmsnr"

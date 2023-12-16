@@ -39,7 +39,10 @@ func mutateServer(cmd *cobra.Command, args []string) {
 		Client:    mgr.GetClient(),
 		Namespace: namespace,
 		Registry:  registry,
+		CmsnrTag:  viper.GetString("cmsnrtag"),
+		OPATag:    viper.GetString("opatag"),
 	}
+
 	log.Info("setting up server")
 	mgrServer := mgr.GetWebhookServer()
 	mgrServer.Port = port

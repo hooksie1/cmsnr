@@ -16,9 +16,11 @@ type Deployment struct {
 	Port       int
 	Version    string
 	Registry   string
+	OpaTag     string
+	CmsnrTag   string
 }
 
-func NewDeployment(name, namespace, registry, serverType, secretName string, port int, version string) *appsv1.Deployment {
+func NewDeployment(name, namespace, registry, serverType, secretName string, port int, version, cmsnrtag, opatag string) *appsv1.Deployment {
 	dep := Deployment{
 		Name:       name,
 		Namespace:  namespace,
@@ -27,6 +29,8 @@ func NewDeployment(name, namespace, registry, serverType, secretName string, por
 		Port:       port,
 		Version:    version,
 		Registry:   registry,
+		CmsnrTag:   cmsnrtag,
+		OpaTag:     opatag,
 	}
 
 	return dep.newDeployment()
@@ -68,7 +72,7 @@ func (d *Deployment) getTemplate() corev1.PodTemplateSpec {
 					Image:           fmt.Sprintf("%s/cmsnr:%s", d.Registry, d.Version),
 					ImagePullPolicy: "Always",
 					Name:            d.Name,
-					Args:            []string{"server", "start", fmt.Sprintf("--registry=%s", d.Registry), d.ServerType, fmt.Sprintf("-n=%s", d.Namespace)},
+					Args:            []string{"server", "start", fmt.Sprintf("--registry=%s", d.Registry), fmt.Sprintf("--opa-tag=%s", d.OpaTag), fmt.Sprintf("--cmsnr-tag=%s", d.CmsnrTag), d.ServerType, fmt.Sprintf("-n=%s", d.Namespace)},
 					Ports: []corev1.ContainerPort{
 						{
 							Name:          "https",
